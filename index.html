@@ -333,17 +333,29 @@ document.getElementById('truck-length').addEventListener('change',e=>{
  }
  draw();
 });
-document.addEventListener('keydown',e=>{
- const tag=document.activeElement?.tagName;if(tag==='INPUT')return;
- if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();restore();}
- else if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();deleteSelected();}
- else if(e.key.toLowerCase()==='r')rotateSelected();
+document.addEventListener('keydown', e => {
+  const tag = document.activeElement?.tagName;
+
+  if (
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) ||
+    document.activeElement?.isContentEditable
+  ) return;
+
+  // Отмена действия
+  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') {
+    e.preventDefault();
+    restore();
+  }
+  // Удаление выбранных паллет
+  else if (e.key === 'Delete' || e.key === 'Backspace') {
+    e.preventDefault();
+    deleteSelected();
+  }
+  // Поворот выбранных паллет
+  else if (e.code === 'KeyR' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    rotateSelected();
+  }
 });
-function resizeCanvas(){scale=Math.min(BASE_SCALE,(canvas.width-PAD*2)/truckLength);draw();}
-window.addEventListener('resize',resizeCanvas,{passive:true});
-window.addEventListener('orientationchange',()=>setTimeout(resizeCanvas,120),{passive:true});
-resizeCanvas();
-})();
 </script>
 </body>
 </html>
