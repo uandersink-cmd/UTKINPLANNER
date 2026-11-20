@@ -346,16 +346,13 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     restore();
   }
-
-  // Удаление паллет
+  // Удаление выбранных паллет
   else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
     deleteSelected();
   }
-
-  // Поворот паллет
+  // Поворот выбранных паллет
   else if (e.code === 'KeyR' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-    e.preventDefault();
     rotateSelected();
   }
 });
