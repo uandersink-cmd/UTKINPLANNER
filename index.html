@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111827">
+<title>UtkinPlanner — бесплатный планировщик загрузки фуры</title>
+<meta name="description" content="Бесплатный онлайн-планировщик загрузки грузового автомобиля. Размещайте евро- и американские паллеты, рассчитывайте свободное место и печатайте схему загрузки.">
+<meta name="keywords" content="планировщик фуры, загрузка фуры, схема загрузки паллет, евро паллеты, американские паллеты, расчет загрузки грузовика">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ru_RU">
+<meta property="og:title" content="UtkinPlanner — планировщик загрузки фуры">
+<meta property="og:description" content="Бесплатный инструмент для планирования размещения паллет в грузовом автомобиле.">
+<style>
+:root{color-scheme:dark;--bg:#0b1120;--panel:#121c2e;--panel2:#172338;--line:#26364e;--text:#edf3fb;--muted:#9aabc2;--blue:#4f8cff;--blue2:#3675ed;--green:#35c98a;--red:#e45b68;--gold:#e8ad4b;--eu:#76c9ed;--us:#b49be8}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#17243a 0,#0b1120 55%);color:var(--text);font:15px/1.5 Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button,input{font:inherit}
+button{border:0;border-radius:10px;padding:10px 13px;background:#26364e;color:var(--text);font-weight:650;cursor:pointer;transition:background .18s,transform .12s}
+button:hover{background:#344966}button:active{transform:translateY(1px)}button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--blue)}.primary:hover{background:var(--blue2)}.success{background:#1c805b}.success:hover{background:#24966b}.danger{background:#9e3544}.danger:hover{background:#ba4051}.warning{background:#9b6b20}.warning:hover{background:#b57c27}
+header{padding:24px 18px 16px;text-align:center}
+.brand{margin:0;font-size:clamp(23px,4vw,32px);font-weight:850;letter-spacing:.11em;text-transform:uppercase}
+.tagline{margin:5px 0 0;color:var(--muted);font-size:14px}
+.layout{width:min(1500px,100%);margin:0 auto;padding:12px 18px 36px;display:grid;grid-template-columns:270px minmax(0,1fr);gap:18px;align-items:start}
+.sidebar,.workspace{min-width:0}
+.card{background:linear-gradient(180deg,rgba(23,35,56,.97),rgba(18,28,46,.97));border:1px solid var(--line);border-radius:16px;padding:17px;box-shadow:0 12px 30px #0002}
+.sidebar{display:grid;gap:14px}
+.card h2{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 13px}
+.field{display:grid;gap:6px}.field label,.small-label{font-size:13px;color:#c5d1e0}
+input{width:100%;min-width:0;padding:10px 11px;border-radius:9px;border:1px solid #354761;background:#0c1525;color:var(--text);text-align:center}
+.counter{display:grid;grid-template-columns:40px 1fr 40px;gap:8px;align-items:center}
+.counter button{height:40px;padding:0;font-size:20px}
+.counter output{display:block;text-align:center;padding:8px;border:1px solid var(--line);border-radius:9px;background:#0c1525;font-weight:750}
+.batch{display:grid;grid-template-columns:1fr auto;gap:8px;margin-top:10px}
+.batch input{width:72px}
+.group-title{display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.group-title.eu{color:var(--eu)}.group-title.us{color:var(--us)}
+.actions{display:grid;gap:8px}
+.workspace{display:grid;gap:14px}
+.canvas-card{padding:12px;overflow:hidden}
+.canvas-scroll{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+canvas{display:block;flex:none;width:auto;height:auto;max-width:none;touch-action:none;cursor:crosshair}
+.canvas-hint{padding:10px 5px 0;color:var(--muted);font-size:12px;line-height:1.5;text-align:center}
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px 8px;text-align:center}
+.stat-label{display:block;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+.stat-value{display:block;font-size:clamp(18px,2.5vw,25px);font-weight:800;margin-top:3px}
+.eu-text{color:var(--eu)}.us-text{color:var(--us)}.outside-text{color:var(--gold)}
+.shortcuts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 18px;color:var(--muted);font-size:12px}
+kbd{font:600 11px ui-monospace,monospace;color:var(--text);background:#26364e;padding:3px 6px;border-radius:5px}
+footer{border-top:1px solid var(--line);padding:30px 18px 38px;text-align:center;color:var(--muted)}
+.donate{max-width:560px;margin:0 auto}
+.donate p{margin:0 auto 16px;max-width:520px;color:#c1cede}
+.qr{display:block;width:156px;height:156px;object-fit:contain;background:#fff;padding:7px;border-radius:12px;margin:0 auto 10px}
+.qr-missing{width:156px;height:156px;margin:0 auto 10px;border:1px dashed var(--muted);border-radius:12px;display:grid;place-items:center;font-size:12px}
+.footer-note{font-size:12px;margin-top:18px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}.actions{grid-column:1/-1}.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){header{padding:16px 12px 12px}.layout{padding:8px 10px 24px;gap:12px}.sidebar{grid-template-columns:1fr}.card{padding:14px}.canvas-card{padding:10px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:last-child{grid-column:1/-1}.shortcuts{gap:7px 12px}.canvas-hint{font-size:11px}}
+@media print{body{background:#fff;color:#111}.layout{display:block;padding:0}.sidebar,header .tagline,footer,.shortcuts,.canvas-hint{display:none!important}.brand{color:#111}.workspace{display:block}.canvas-card,.stat{background:#fff;border:1px solid #999;box-shadow:none;break-inside:avoid}.canvas-scroll{overflow:visible}canvas{min-width:0!important;width:100%!important;height:auto!important}.stats{margin-top:12px}.stat-label{color:#444}.stat-value{color:#111}}
+
+/* Дополнительные типы паллет и адаптивные действия */
+.custom-tools{display:grid;gap:10px}
+.custom-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#0d1728}
+.custom-card h3{font-size:12px;letter-spacing:.06em;margin:0 0 9px;color:var(--custom-color,#d5b56b)}
+.custom-dims{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.custom-dims label{display:grid;gap:4px;font-size:11px;color:var(--muted)}
+.custom-dims input{padding:8px 5px}
+.custom-card .batch{grid-template-columns:70px 1fr}
+.add-custom{width:100%;background:#45536c}
+.donate-panel{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
+.donate-panel p{max-width:440px;margin:0;color:#c1cede;text-align:left}
+.donate-panel .qr{margin:0;flex:0 0 156px}
+.mobile-actions-host{display:none}
+@media(max-width:900px){
+ .layout{grid-template-columns:1fr}
+ .sidebar{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .actions{grid-column:1/-1}
+ .mobile-actions-host{display:block}
+ .workspace .shortcuts{order:4}
+ .workspace .mobile-actions-host{order:5}
+ .workspace .donate-panel{order:6}
+ .sidebar .actions{display:none}
+}
+@media(max-width:560px){
+ .layout{padding:8px 10px 24px;gap:12px}
+ .sidebar{grid-template-columns:1fr}
+ .card{padding:14px}
+ .canvas-card{padding:10px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .stat:last-child{grid-column:1/-1}
+ .shortcuts{gap:7px 12px}
+ .canvas-hint{font-size:11px}
+ .donate-panel{flex-direction:column;text-align:center;padding:18px}
+ .donate-panel p{text-align:center}
+ .mobile-actions-host .card{padding:12px}
+}
+
+
+/* Минималистичная статистика сайта */
+header{position:relative;padding-right:190px;padding-left:190px}
+.site-metrics{position:absolute;right:22px;top:16px;display:flex;gap:12px;align-items:center}
+.metric-pill{display:flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#101a2a;color:var(--muted);font-size:12px;white-space:nowrap}
+.metric-pill svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.metric-pill strong{color:var(--text);font-variant-numeric:tabular-nums}
+.metric-pill.online svg{color:#4bd69b}
+.metric-pill.today svg{color:#9bb5ff}
+.canvas-card{position:relative}
+.mobile-rotate{position:absolute;right:18px;bottom:54px;z-index:3;display:none;align-items:center;gap:7px;padding:10px 14px;border:1px solid #7195c8;border-radius:999px;background:#2458a8;color:#fff;box-shadow:0 6px 18px #0006;font-size:13px}
+.mobile-rotate[hidden]{display:none!important}
+@media(max-width:900px){
+ header{padding:20px 16px 16px}
+ .site-metrics{top:8px;right:12px;gap:6px}
+ .metric-pill{padding:6px 8px;font-size:11px}
+ .mobile-rotate:not([hidden]){display:flex}
+}
+@media(max-width:560px){
+ header{padding:52px 12px 12px}
+ .site-metrics{top:8px;right:10px}
+ .metric-pill{padding:6px 8px}
+ .mobile-rotate{right:14px;bottom:48px;padding:9px 12px}
+}
+
+</style>
+</head>
+<body>
+<header>
+<div class="site-metrics" aria-label="Статистика посещений">
+ <div class="metric-pill online" title="Активные посетители за последние 5 минут"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><strong id="online-count">—</strong></div>
+ <div class="metric-pill today" title="Уникальные посетители за последние 24 часа"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h16v18H4zM8 7h8M8 11h8M8 15h5"/></svg><strong id="today-count">—</strong></div>
+</div>
+<h1 class="brand">UtkinPlanner</h1><p class="tagline">Бесплатный планировщик загрузки грузовых автомобилей</p></header>
+<main class="layout">
+<aside class="sidebar" aria-label="Настройки загрузки">
+<section class="card">
+<h2>Параметры фуры</h2>
+<div class="field"><label for="truck-length">Длина кузова, м</label><input id="truck-length" type="number" min="5" max="25" step=".1" value="13.2"></div>
+<p class="small-label" style="margin:9px 0 0">Внутренняя ширина: 2,45 м</p>
+</section>
+<section class="card">
+<h2 class="group-title eu"><span class="dot" style="background:var(--eu)"></span>Европаллеты</h2><p class="small-label" style="margin:-6px 0 9px">Размер: 1200 × 800 мм</p>
+<div class="counter"><button type="button" aria-label="Убрать одну европаллету" data-remove="eu">−</button><output id="eu-count">0</output><button type="button" aria-label="Добавить одну европаллету" data-add="eu">+</button></div>
+<div class="batch"><input id="eu-batch" type="number" min="1" max="100" value="5" aria-label="Количество европаллет в пачке"><button class="primary" type="button" data-batch="eu">Добавить пачку</button></div>
+</section>
+<section class="card">
+<h2 class="group-title us"><span class="dot" style="background:var(--us)"></span>Американские паллеты</h2><p class="small-label" style="margin:-6px 0 9px">Размер: 1200 × 1000 мм</p>
+<div class="counter"><button type="button" aria-label="Убрать одну американскую паллету" data-remove="us">−</button><output id="us-count">0</output><button type="button" aria-label="Добавить одну американскую паллету" data-add="us">+</button></div>
+<div class="batch"><input id="us-batch" type="number" min="1" max="100" value="5" aria-label="Количество американских паллет в пачке"><button class="primary" type="button" data-batch="us">Добавить пачку</button></div>
+</section>
+<section class="card" id="custom-section">
+ <h2>Свои размеры</h2><p class="small-label" style="margin:-5px 0 10px">Укажите длину и ширину до добавления паллет.</p>
+ <div id="custom-types" class="custom-tools"></div>
+ <button id="add-custom-type" class="add-custom" type="button">＋ Добавить свой размер</button>
+</section>
+<section class="card actions">
+<h2>Действия</h2>
+<button id="deselect" type="button">Снять выделение</button>
+<button id="delete-selected" class="danger" type="button">Удалить выделенные</button>
+<button id="undo" class="warning" type="button">↶ Отменить действие</button>
+<button id="print" class="success" type="button">Распечатать схему</button>
+<button id="clear" class="danger" type="button" aria-label="Очистить все паллеты; действие можно отменить">Очистить всё</button>
+</section>
+</aside>
+<section class="workspace" aria-label="Схема размещения паллет">
+<div class="card canvas-card"><div class="canvas-scroll"><canvas id="board" width="1300" height="760" aria-label="Интерактивная схема загрузки фуры"></canvas></div><button id="mobile-rotate" class="mobile-rotate" type="button" hidden aria-label="Повернуть выбранные паллеты">↻ Повернуть</button><div class="canvas-hint">Перетаскивайте паллеты мышью или пальцем. Схема автоматически подстраивается под ширину экрана; паллеты выравниваются по сетке и соседним краям.</div></div>
+<div class="stats" aria-live="polite">
+<div class="stat"><span class="stat-label">Свободно по длине</span><strong class="stat-value" id="free-length">13,20 м</strong></div>
+<div class="stat"><span class="stat-label">В фуре</span><strong class="stat-value" id="total-count">0</strong></div>
+<div class="stat"><span class="stat-label">Европаллеты</span><strong class="stat-value eu-text" id="eu-total">0</strong></div>
+<div class="stat"><span class="stat-label">Американские</span><strong class="stat-value us-text" id="us-total">0</strong></div>
+<div class="stat"><span class="stat-label">За пределами</span><strong class="stat-value outside-text" id="outside-count">0</strong></div>
+</div>
+<div class="card shortcuts"><span><kbd>R</kbd> повернуть выбранные</span><span><kbd>Del</kbd> удалить выбранные</span><span><kbd>ЛКМ</kbd> переместить / рамка</span><span><kbd>Ctrl</kbd> или <kbd>Shift</kbd> мультивыбор</span><span><kbd>ПКМ</kbd> удалить паллету</span><span><kbd>Ctrl + Z</kbd> отменить</span></div>
+<div id="mobile-actions-host" class="mobile-actions-host"></div>
+<div class="card donate-panel">
+<p>Этот сайт полностью бесплатен. Если сервис помог вам и принёс пользу, вы можете отблагодарить автора.</p>
+<img class="qr" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAyAAAAMgCAYAAADbcAZoAAAABHNCSVQICAgIfAhkiAAAAAFzUkdCAK7OHOkAABbpSURBVHic7dlRbuS6FQBRM+j9b5n5DuA8zKN7in3lc/4bvBIp2QWtvff+AgAACPzn9gAAAMDvIUAAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyLxuD8DPrbVuj8DX19feO13vdN+fPufT1zs1Zc5TT7++U/XfB88Rhac/t7+BLyAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEDmdXsA7tl73x7hI621bo/wker7MmW9+jmq53z6elNM2YdTTz8vTz+fp/y9/b18AQEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADKv2wMwz1rr9gh/ZO99e4Q/Ut/P0/VO7+eU9U7V11ef6ynr1fvueXjvelOeh5q/tzyVLyAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEDmdXsA4MzeO11vrTVivfq+1Kbcl/q8nF7f0+d8+vMAzOQLCAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkHndHgA4s9Y6+t3e+82TfNZ6p+r7OWW9U/W+T3kepuz7lHN2asp7CZ7KFxAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACDzuj0A8+y9b4/A1/k+rLXePMlnred8fu/p56Xe93rOp6/H99xPnsoXEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAIPO6PQD3rLVuj8Age++j352eM+t9xnpP9/T9s9571zvl7y38L19AAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAzNp779tDwG+21ro9wl/lFTNbfT5Pz8uUOfne6f7ZB5jJFxAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACCz9t779hD8zFrr6HenW3+63tPVj1K9D67ve1PmnML77L3q+zLlPeG8vNfT30u8ny8gAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABA5nV7AO5Za6Xr7b2Pfnc65+l6T1fvw6l6/+pzVt/PKc+R98R7Tbkv9fNQm3KuvZeo+AICAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABk1t573x6CWdZaR787PWqn6z3dlPtZz1m/0qbMeWrKeZliyvtsynP79PM55f0yZU4+hy8gAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABA5nV7AH5urXX0u733myf5Z/WcU9ar1dfnfPJvTHlu632fcs6e/v6sPf1c83v5AgIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGQECAAAkBEgAABARoAAAAAZAQIAAGRetwfgnrXW0e/23ul6tSn3pZ7z9Hc15+y96vXq/ZvyPpvyXppyPp++f6emvD+ZzxcQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAg87o9AHyavffR79Zab56EE/X+nf6unnPKerUp9/PUlPXq8/L0/fP88el8AQEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADKv2wPwc3vvo9+ttdLf1er78vT1Tp3OyXvV52yKKc/tFPX7Zcr77On35dTTnwf+P19AAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAzOv2APBp9t7W+8Za682T/J31ptzPKep9r005Z6fq63v68zflvNRznq435X7yfr6AAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAmbX33reH4GfWWke/q7f+dM6nO92HKfdzyjl7+j7U6vv59P2b8hydmrJ/U871qSn3k/l8AQEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADJr771vDwH/ZK2Vrnf6SNRzTlG/Yk734elzPn292tOvrzblfnrPfwbP0Xy+gAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAAJm19963h+Bn1lpHv6u3/nTOKU7v59PvC+/19Od2yp+kKc/tlPNizu95/ngqX0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAIDM2nvv20PwM2ut2yP8kfqond6X0zmfvt6pKefz6epzxvf8yZ3Ne/69nn59/H++gAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAAJnX7QGYZ++drrfWevR6U5zel/q81Kbclynn+vS+2If3qvfhVL1/U87n0/eB+XwBAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMmvvvW8PwR1rrdsj/JEpR7S+n/V9mXJeTjln73V6P5/+HNVO76f3y3vVz8PT9+/pz+1v4AsIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQWXvvfXsI7lhrHf1uypE5vb4p7AP/xpTz8nRPfx7qc1bfzynX53nn0/kCAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZF63B+CevffR79ZaI9Y7dTrn003Zhynns16v3r/alP079fTrm/J+4XtTzhmfwxcQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAg87o9AD+31krX23sf/e50znq9+n5OUe/DqdM5a1Oeh1P1PtTX9/T3RH0+Tz3979GU5/3UlHPG+/kCAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZF63B+Dn9t5Hv1trpb87nfNUvd6p0/s5RX0+p6z3dFPuZ73e05/3Kaa8J+rz4nmg4gsIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQWXvvfXsI+CRrrXS9+hGccn3mfC/n7Hunc065n+7Le015T0zZB/+C/l6+gAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAAJnX7QH4ubVWut7eO13v1Ol9Ob2+0/XqOU89fb0pz5Fz9r16/05NeS89fR+mnOtTU553fi9fQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgMzr9gDcs/e+PcJfdXp9a60R69Vznpoy56kp5+zUlOdhyvM3xZR9ODXl+as9/VzzOXwBAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMq/bA8Cn2XvfHuGPTJmzttY6+l19P0/Xq69vypyn6vVO78uU+3k656mnX9+pKc/tlHPN+/kCAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZNbee98egp9Zax397nTrT9fje/bhd6r33Tl7r/pP55R9cF/ey79oPJUvIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQOZ1ewDm2Xsf/W6tla5XO72++r7Yh+9Nub7alHM2Zd9P5zw15fpO56zPyxRTngd+L19AAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAzOv2AMyz1jr63d77zZP8s9M5a6f3Zcr1nXLOPkO9D/X9tH+zub7v1c9f/d5lPl9AAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAzNp779tDwG+21krXqx/5Kdc3Zc5Tp9c35U/E06+vVt/Ppz9/p6bclylz8jl8AQEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADKv2wPwc2ut2yPw9fW1905/d2rKeTm9L6fXV693asr1We+9psz5dE/fh/p9NuW+8H6+gAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAAJnX7QG4Z+99e4SPtNYasd6U/avnPF2v3vdTU/b9VL1/9f2c8n6p15vy3E55/qbMye/lCwgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJARIAAAQEaAAAAAGQECAABkBAgAAJB53R6AedZat0f4I3vv2yP8VVP2Ycqcp+pzdno/T+c8/d2UfXc/v+f9OZvzwqfzBQQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMgIEAAAICNAAACAjAABAAAyAgQAAMi8bg8AnNl7H/1urTVivaer9+GUOd9rypynnn59U9678Ol8AQEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADKv2wMAM6y10vX23ul6p07vy+n11evVplzflH2vTTnXp+vV+zDleYB/yxcQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAgI0AAAICMAAEAADICBAAAyAgQAAAg87o9APPsvW+P8ChPv5+n17fWStc79fT1Tk3Zv1P2fbYp9/P0Oao9/Xnn/XwBAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMq/bA3DPWuv2CHw9fx9c32fYe49Y7/R+1uvV6v2bcl+mqO9nvV59PpnPFxAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACAjQAAAgIwAAQAAMgIEAADICBAAACCz9t779hAAAMDv4AsIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZAQIAACQESAAAEBGgAAAABkBAgAAZP4L3C3ldFFNRX0AAAAASUVORK5CYII=" alt="QR-код для благодарности автору" width="156" height="156">
+</div>
+</section>
+</main>
+<footer><div class="footer-note">UtkinPlanner · Бесплатный инструмент для планирования загрузки</div></footer>
+<script>
+(() => {
+'use strict';
+const canvas=document.getElementById('board'),ctx=canvas.getContext('2d');
+const scrollArea=canvas.parentElement;
+const PAD=42,TRUCK_WIDTH=2450,BASE_SCALE=.085,BUFFER_GAP=55;
+let truckLength=13200,scale=BASE_SCALE,pallets=[],selected=new Set(),history=[],pointerState=null,marquee=null,idCounter=1,customCounter=0;
+const types={
+ eu:{label:'EURO',title:'Европаллеты',w:800,h:1200,color:'#76c9ed',short:'EU'},
+ us:{label:'US',title:'Американские паллеты',w:1000,h:1200,color:'#b49be8',short:'US'}
+};
+const $=id=>document.getElementById(id);
+const px=x=>PAD+x*scale,py=y=>PAD+y*scale;
+const intersects=(a,b)=>a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;
+const dims=(type,rot=false)=>{const t=types[type];return rot?{w:t.h,h:t.w}:{w:t.w,h:t.h};};
+function snapshot(){history.push(JSON.stringify(pallets));if(history.length>60)history.shift();updateButtons();}
+function restore(){if(!history.length)return;pallets=JSON.parse(history.pop());selected.clear();draw();}
+function insideTruck(p){return p.x>=0&&p.y>=0&&p.x+p.w<=truckLength&&p.y+p.h<=TRUCK_WIDTH;}
+function freeAt(c,ignoreId=null){return !pallets.some(p=>p.id!==ignoreId&&p.inTruck===c.inTruck&&intersects(c,p));}
+function findCustomPairSpot(type){
+ const d=dims(type);
+ // Ищем сразу целую пару: две одинаковые паллеты рядом по ширине кузова.
+ // Не занимаем одиночное место, если второе место пары свободно не найдено.
+ if(d.h*2>TRUCK_WIDTH)return null;
+ for(let x=0;x<=truckLength-d.w;x+=50){
+  const first={x,y:0,w:d.w,h:d.h,inTruck:true};
+  const second={x,y:d.h,w:d.w,h:d.h,inTruck:true};
+  if(insideTruck(first)&&insideTruck(second)&&freeAt(first)&&freeAt(second))
+   return [first,second];
+ }
+ return null;
+}
+function findCustomTruckSpot(type){
+ const d=dims(type);
+ if(d.h*2<=TRUCK_WIDTH){
+  for(let x=0;x<=truckLength-d.w;x+=50){
+   for(const y of [0,d.h]){
+    const candidate={x,y,w:d.w,h:d.h,inTruck:true};
+    if(insideTruck(candidate)&&freeAt(candidate))return candidate;
+   }
+  }
+ }
+ return findTruckSpot(type);
+}
+function findTruckSpot(type){
+ const d=dims(type);
+ for(let x=0;x<=truckLength-d.w;x+=50)for(const y of [0,TRUCK_WIDTH-d.h]){const p={x,y,w:d.w,h:d.h,inTruck:true};if(freeAt(p))return p;}
+ for(let x=0;x<=truckLength-d.w;x+=50)for(let y=0;y<=TRUCK_WIDTH-d.h;y+=50){const p={x,y,w:d.w,h:d.h,inTruck:true};if(freeAt(p))return p;}
+ return null;
+}
+function findOutsideSpot(type){
+ const d=dims(type),start=TRUCK_WIDTH+BUFFER_GAP;
+ for(let row=0;row<30;row++)for(let x=0;x<=truckLength-d.w;x+=50){const p={x,y:start+row*(d.h+24),w:d.w,h:d.h,inTruck:false};if(freeAt(p))return p;}
+ return {x:0,y:start+30*(d.h+24),w:d.w,h:d.h,inTruck:false};
+}
+function add(type,qty=1){
+ if(!types[type])return;
+ qty=Math.max(1,Math.min(100,Math.floor(Number(qty)||1)));snapshot();
+ let remaining=qty;
+ // Пользовательские паллеты добавляются готовыми парами по ширине кузова,
+ // чтобы пачка не распадалась на отдельные одиночные позиции.
+ if(type.startsWith('custom')){
+  while(remaining>=2){
+   const pair=findCustomPairSpot(type);
+   if(!pair)break;
+   for(const spot of pair)pallets.push({...spot,id:idCounter++,type,rot:false});
+   remaining-=2;
+  }
+ }
+ for(let n=0;n<remaining;n++){
+  const spot=(type.startsWith('custom')?findCustomTruckSpot(type):findTruckSpot(type))||findOutsideSpot(type);
+  pallets.push({...spot,id:idCounter++,type,rot:false});
+ }
+ selected.clear();draw();
+}
+function removeOne(type){
+ const p=[...pallets].reverse().find(v=>v.type===type&&selected.has(v.id))||[...pallets].reverse().find(v=>v.type===type);
+ if(!p)return;snapshot();pallets=pallets.filter(v=>v.id!==p.id);selected.delete(p.id);draw();
+}
+function updateButtons(){
+ $('deselect').hidden=selected.size===0;$('delete-selected').hidden=selected.size===0;
+ $('mobile-rotate').hidden=selected.size===0;
+ $('delete-selected').textContent=`Удалить выделенные (${selected.size})`;$('undo').disabled=history.length===0;
+}
+function syncCanvasDisplay(){const w=Math.max(280,scrollArea.clientWidth||280);canvas.style.width=w+'px';canvas.style.height=(w*canvas.height/canvas.width)+'px';}
+function syncCanvasHeight(){let bottom=TRUCK_WIDTH;for(const p of pallets)bottom=Math.max(bottom,p.y+p.h);const h=Math.max(360,Math.ceil(PAD*2+bottom*scale+76));if(canvas.height!==h)canvas.height=h;syncCanvasDisplay();}
+function draw(){
+ syncCanvasHeight();ctx.clearRect(0,0,canvas.width,canvas.height);ctx.fillStyle='#0e192a';ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle='#aab9cc';ctx.font='600 14px system-ui';ctx.fillText('КУЗОВ ФУРЫ · '+(truckLength/1000).toFixed(1).replace('.',',')+' м × 2,45 м',PAD,PAD-16);
+ const tw=truckLength*scale,th=TRUCK_WIDTH*scale;ctx.fillStyle='#17283d';ctx.fillRect(PAD,PAD,tw,th);ctx.strokeStyle='#9aabc2';ctx.lineWidth=2;ctx.strokeRect(PAD,PAD,tw,th);
+ ctx.save();ctx.beginPath();ctx.rect(PAD,PAD,tw,th);ctx.clip();ctx.strokeStyle='#263b55';ctx.lineWidth=1;
+ for(let x=500;x<truckLength;x+=500){ctx.beginPath();ctx.moveTo(px(x),PAD);ctx.lineTo(px(x),PAD+th);ctx.stroke();}
+ for(let y=500;y<TRUCK_WIDTH;y+=500){ctx.beginPath();ctx.moveTo(PAD,py(y));ctx.lineTo(PAD+tw,py(y));ctx.stroke();}ctx.restore();
+ ctx.fillStyle='#aab9cc';ctx.font='600 13px system-ui';ctx.fillText('ПАЛЛЕТЫ ВНЕ КУЗОВА',PAD,PAD+th+30);
+ for(const p of pallets){const t=types[p.type],x=px(p.x),y=py(p.y),w=p.w*scale,h=p.h*scale;ctx.globalAlpha=p.inTruck?1:.55;ctx.fillStyle=t.color;ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;ctx.strokeStyle=selected.has(p.id)?'#fff':'#26364e';ctx.lineWidth=selected.has(p.id)?3:1.2;ctx.strokeRect(x,y,w,h);if(w>38&&h>28){ctx.fillStyle='#142033';ctx.font='bold 12px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(t.short||t.label,x+w/2,y+h/2);ctx.textAlign='left';ctx.textBaseline='alphabetic';}}
+ if(marquee){const x=Math.min(marquee.x1,marquee.x2),y=Math.min(marquee.y1,marquee.y2),w=Math.abs(marquee.x2-marquee.x1),h=Math.abs(marquee.y2-marquee.y1);ctx.fillStyle='#4f8cff33';ctx.strokeStyle='#4f8cff';ctx.lineWidth=1;ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);}
+ const inside=pallets.filter(p=>p.inTruck),eu=inside.filter(p=>p.type==='eu').length,us=inside.filter(p=>p.type==='us').length,other=inside.length-eu-us,out=pallets.length-inside.length,maxX=inside.reduce((m,p)=>Math.max(m,p.x+p.w),0);
+ $('free-length').textContent=Math.max(0,(truckLength-maxX)/1000).toFixed(2).replace('.',',')+' м';$('total-count').textContent=inside.length;$('eu-total').textContent=eu;$('us-total').textContent=us;$('outside-count').textContent=out;
+ $('eu-count').textContent=pallets.filter(p=>p.type==='eu').length;$('us-count').textContent=pallets.filter(p=>p.type==='us').length;
+ document.querySelectorAll('[data-custom-count]').forEach(el=>{el.textContent=pallets.filter(p=>p.inTruck&&p.type===el.dataset.customCount).length;});
+ updateButtons();
+}
+function point(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height};}
+function hit(pt){for(let i=pallets.length-1;i>=0;i--){const p=pallets[i];if(pt.x>=px(p.x)&&pt.x<=px(p.x+p.w)&&pt.y>=py(p.y)&&pt.y<=py(p.y+p.h))return p;}return null;}
+canvas.addEventListener('pointerdown',e=>{if(e.button!==0&&e.pointerType==='mouse')return;const pt=point(e),p=hit(pt);canvas.setPointerCapture(e.pointerId);if(p){if(e.shiftKey||e.ctrlKey||e.metaKey)selected.has(p.id)?selected.delete(p.id):selected.add(p.id);else if(!selected.has(p.id)){selected.clear();selected.add(p.id);}pointerState={kind:'drag',start:pt,originals:pallets.filter(v=>selected.has(v.id)).map(v=>({...v})),before:JSON.stringify(pallets),anchor:p.id,moved:false};}else{if(!e.shiftKey&&!e.ctrlKey&&!e.metaKey)selected.clear();pointerState={kind:'select',start:pt};marquee={x1:pt.x,y1:pt.y,x2:pt.x,y2:pt.y};}draw();});
+canvas.addEventListener('pointermove',e=>{if(!pointerState)return;const pt=point(e);if(pointerState.kind==='select'){marquee.x2=pt.x;marquee.y2=pt.y;draw();return;}let dx=(pt.x-pointerState.start.x)/scale,dy=(pt.y-pointerState.start.y)/scale;if(Math.abs(dx)+Math.abs(dy)>1)pointerState.moved=true;const snapped=getSnappedDelta(pointerState,dx,dy);dx=snapped.dx;dy=snapped.dy;if(canMoveGroup(pointerState,dx,dy)){for(const o of pointerState.originals){const p=pallets.find(v=>v.id===o.id);if(p){p.x=o.x+dx;p.y=o.y+dy;p.inTruck=insideTruck(p);}}}draw();});
+function snapCoordinate(value,candidates,threshold){
+ let best=Math.round(value/50)*50,bestDistance=Math.abs(best-value);
+ for(const candidate of candidates){const distance=Math.abs(candidate-value);if(distance<threshold&&distance<bestDistance){best=candidate;bestDistance=distance;}}
+ return best;
+}
+function getSnappedDelta(state,dx,dy){
+ const anchor=state.originals.find(p=>p.id===state.anchor);if(!anchor)return {dx,dy};
+ const movingIds=new Set(state.originals.map(p=>p.id)),threshold=7*(canvas.width/Math.max(1,canvas.getBoundingClientRect().width))/scale;
+ const xs=[0,truckLength-anchor.w],ys=[0,TRUCK_WIDTH-anchor.h,TRUCK_WIDTH+BUFFER_GAP];
+ for(const other of pallets){if(movingIds.has(other.id))continue;xs.push(other.x,other.x+other.w,other.x-anchor.w,other.x+other.w-anchor.w);ys.push(other.y,other.y+other.h,other.y-anchor.h,other.y+other.h-anchor.h);}
+ const tx=anchor.x+dx,ty=anchor.y+dy,sx=snapCoordinate(tx,xs,threshold),sy=snapCoordinate(ty,ys,threshold);
+ return {dx:Math.max(-anchor.x,Math.min(truckLength-anchor.w,sx))-anchor.x,dy:Math.max(0,sy)-anchor.y};
+}
+function canMoveGroup(state,dx,dy){const ids=new Set(state.originals.map(p=>p.id)),cs=state.originals.map(o=>({...o,x:o.x+dx,y:o.y+dy,inTruck:insideTruck({...o,x:o.x+dx,y:o.y+dy})}));for(const p of cs){if(p.x<0||p.x+p.w>truckLength||p.y<0)return false;for(const q of pallets)if(!ids.has(q.id)&&intersects(p,q))return false;}for(let i=0;i<cs.length;i++)for(let j=i+1;j<cs.length;j++)if(intersects(cs[i],cs[j]))return false;return true;}
+function finishPointer(){if(!pointerState)return;if(pointerState.kind==='select'&&marquee){const b={x:Math.min(marquee.x1,marquee.x2),y:Math.min(marquee.y1,marquee.y2),w:Math.abs(marquee.x2-marquee.x1),h:Math.abs(marquee.y2-marquee.y1)};for(const p of pallets){const r={x:px(p.x),y:py(p.y),w:p.w*scale,h:p.h*scale};if(intersects(b,r))selected.add(p.id);}}if(pointerState.kind==='drag'&&pointerState.moved&&JSON.stringify(pallets)!==pointerState.before){history.push(pointerState.before);if(history.length>60)history.shift();}pointerState=null;marquee=null;draw();}
+canvas.addEventListener('pointerup',finishPointer);canvas.addEventListener('pointercancel',finishPointer);
+canvas.addEventListener('contextmenu',e=>{e.preventDefault();const p=hit(point(e));if(!p)return;snapshot();pallets=pallets.filter(v=>v.id!==p.id);selected.delete(p.id);draw();});
+function deleteSelected(){if(!selected.size)return;snapshot();pallets=pallets.filter(p=>!selected.has(p.id));selected.clear();draw();}
+function rotateSelected(){
+ if(!selected.size)return;
+ const chosen=pallets.filter(p=>selected.has(p.id));
+ if(chosen.length===1){const p=chosen[0],d=dims(p.type,!p.rot),c={...p,...d};if((p.inTruck?insideTruck(c):c.x>=0)&&!pallets.some(o=>o.id!==p.id&&o.inTruck===p.inTruck&&intersects(c,o))){snapshot();Object.assign(p,d);p.rot=!p.rot;draw();}return;}
+ // Групповой разворот: поворачиваем и компактно укладываем выбранные паллеты рядами по ширине кузова.
+ if(chosen.some(p=>!p.inTruck)){snapshot();for(const p of chosen){const d=dims(p.type,!p.rot),c={...p,...d};if((!p.inTruck||(c.x>=0&&c.x+c.w<=truckLength&&c.y+c.h<=TRUCK_WIDTH))&&!pallets.some(o=>o.id!==p.id&&!selected.has(o.id)&&intersects(c,o))){Object.assign(p,d);p.rot=!p.rot;}}draw();return;}
+ const ordered=[...chosen].sort((a,b)=>a.x-b.x||a.y-b.y),rotated=ordered.map(p=>({p,d:dims(p.type,!p.rot)}));
+ // Pack no more than 3 per row; if their combined width exceeds the trailer, start a new row.
+ const rows=[];let row=[],rowWidth=0,rowDepth=0;
+ for(const item of rotated){if(row.length>=3||rowWidth+item.d.h>TRUCK_WIDTH){rows.push({items:row,depth:rowDepth});row=[];rowWidth=0;rowDepth=0;}row.push(item);rowWidth+=item.d.h;rowDepth=Math.max(rowDepth,item.d.w);}
+ if(row.length)rows.push({items:row,depth:rowDepth});
+ const baseX=Math.min(...chosen.map(p=>p.x)),step=50,others=pallets.filter(p=>!selected.has(p.id));let placements=null;
+ for(let sx=Math.max(0,Math.floor(baseX/step)*step);sx<=truckLength-rows.reduce((n,r)=>n+r.depth,0);sx+=step){
+  let x=sx,candidates=[];let valid=true;
+  for(const r of rows){let y=0;for(const it of r.items){const c={...it.p,x,y,w:it.d.w,h:it.d.h,inTruck:true};if(c.x+c.w>truckLength||c.y+c.h>TRUCK_WIDTH||others.some(o=>o.inTruck&&intersects(c,o))||candidates.some(o=>intersects(c,o))){valid=false;break;}candidates.push(c);y+=it.d.h;}if(!valid)break;x+=r.depth;}
+  if(valid){placements=candidates;break;}
+ }
+ if(!placements){return;}
+ snapshot();for(const c of placements){const p=pallets.find(v=>v.id===c.id);Object.assign(p,{x:c.x,y:c.y,w:c.w,h:c.h,rot:!p.rot,inTruck:true});}draw();
+}
+function createCustomType(){
+ const id='custom'+(++customCounter),color=['#e7b96b','#7ed6b5','#d79adf','#e58f83','#9db8ed'][((customCounter-1)%5)];
+ types[id]={label:'СВОЯ',title:'Свой размер '+customCounter,w:1200,h:800,color,short:'CUSTOM'};
+ const card=document.createElement('div');card.className='custom-card';card.style.setProperty('--custom-color',color);card.dataset.type=id;
+ card.innerHTML=`<h3>● СВОЙ РАЗМЕР ${customCounter}</h3><div class="custom-dims"><label>Длина, мм<input type="number" min="100" max="3000" step="10" value="1200" data-dim="w"></label><label>Ширина, мм<input type="number" min="100" max="3000" step="10" value="800" data-dim="h"></label></div><div class="counter"><button type="button" data-remove="${id}" aria-label="Убрать паллету">−</button><output data-custom-count="${id}">0</output><button type="button" data-add="${id}" aria-label="Добавить паллету">+</button></div><div class="batch"><input type="number" min="1" max="100" value="5" aria-label="Количество паллет в пачке"><button class="primary" type="button" data-custom-batch="${id}">Добавить пачку</button></div>`;
+ $('custom-types').appendChild(card);
+ card.querySelectorAll('[data-dim]').forEach(inp=>inp.addEventListener('change',()=>{const w=Number(card.querySelector('[data-dim="w"]').value),h=Number(card.querySelector('[data-dim="h"]').value);if(w<100||h<100||w>3000||h>3000){inp.value=inp.dataset.dim==='w'?types[id].w:types[id].h;return;}if(pallets.some(p=>p.type===id)){inp.value=types[id][inp.dataset.dim];return;}types[id].w=w;types[id].h=h;}));
+ card.querySelector('[data-add]').addEventListener('click',()=>add(id,1));card.querySelector('[data-remove]').addEventListener('click',()=>removeOne(id));card.querySelector('[data-custom-batch]').addEventListener('click',()=>add(id,card.querySelector('.batch input').value));
+}
+document.querySelectorAll('[data-add]').forEach(b=>b.addEventListener('click',()=>add(b.dataset.add,1)));
+document.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',()=>removeOne(b.dataset.remove)));
+document.querySelectorAll('[data-batch]').forEach(b=>b.addEventListener('click',()=>add(b.dataset.batch,$(b.dataset.batch+'-batch').value)));
+$('add-custom-type').addEventListener('click',createCustomType);
+$('deselect').addEventListener('click',()=>{selected.clear();draw();});$('delete-selected').addEventListener('click',deleteSelected);$('mobile-rotate').addEventListener('click',rotateSelected);$('undo').addEventListener('click',restore);$('print').addEventListener('click',()=>window.print());
+$('clear').addEventListener('click',()=>{if(!pallets.length)return;snapshot();pallets=[];selected.clear();draw();});
+$('truck-length').addEventListener('change',e=>{const n=Number(e.target.value);if(!Number.isFinite(n)||n<5||n>25){e.target.value=(truckLength/1000).toFixed(1);return;}snapshot();truckLength=n*1000;for(const p of pallets)if(p.inTruck&&!insideTruck(p)){p.inTruck=false;p.x=0;p.y=100000;Object.assign(p,findOutsideSpot(p.type));}draw();});
+document.addEventListener('keydown',e=>{const tag=document.activeElement?.tagName;if(tag==='INPUT'||tag==='TEXTAREA'||e.isComposing)return;const code=e.code;if((e.ctrlKey||e.metaKey)&&code==='KeyZ'){e.preventDefault();restore();}else if(code==='Delete'||code==='Backspace'){e.preventDefault();deleteSelected();}else if(code==='KeyR'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();rotateSelected();}});
+function relocateActions(){
+ const actions=document.querySelector('.actions'),host=$('mobile-actions-host');
+ if(window.matchMedia('(max-width:900px)').matches){
+  if(actions.parentElement!==host)host.appendChild(actions);
+ }else{
+  const sidebar=document.querySelector('.sidebar');
+  const truckParams=sidebar.querySelector('.card');
+  if(truckParams&&truckParams.nextElementSibling!==actions)truckParams.after(actions);
+ }
+ actions.style.display='grid';
+}
+function resizeCanvas(){scale=Math.min(BASE_SCALE,(canvas.width-PAD*2)/truckLength);relocateActions();draw();}
+window.addEventListener('resize',resizeCanvas,{passive:true});window.addEventListener('orientationchange',()=>setTimeout(resizeCanvas,120),{passive:true});resizeCanvas();
+})();
+
+// Публичная статистика посещений через CounterAPI.
+// Онлайн = уникальные браузеры с активностью за последние 5 минут;
+// дневной показатель = уникальные посетители за последние 24 часа.
+(function initVisitorMetrics(){
+ const namespace='uandersink-cmd.github.io';
+ const onlineEl=document.getElementById('online-count');
+ const todayEl=document.getElementById('today-count');
+ let seq=0;
+ function request(action,key,params={}){
+  return new Promise(resolve=>{
+   const callback='upMetricCb'+(++seq);
+   const query=new URLSearchParams({...params,callback});
+   const script=document.createElement('script');
+   const timer=setTimeout(()=>finish(null),8000);
+   function finish(data){
+    clearTimeout(timer);delete window[callback];script.remove();resolve(data);
+   }
+   window[callback]=data=>finish(data);
+   script.onerror=()=>finish(null);
+   script.src='https://counterapi.com/api/'+encodeURIComponent(namespace)+'/'+encodeURIComponent(action)+'/'+encodeURIComponent(key)+'?'+query.toString();
+   document.head.appendChild(script);
+  });
+ }
+ async function heartbeat(){
+  if(document.visibilityState==='hidden')return;
+  await request('heartbeat','active',{unique:'true'});
+ }
+ async function refresh(){
+  const [online,today]=await Promise.all([
+   request('any','any',{timeline:'5m',unique:'true',readOnly:'true'}),
+   request('view','home',{timeline:'24h',unique:'true',readOnly:'true'})
+  ]);
+  if(online&&Number.isFinite(Number(online.value)))onlineEl.textContent=Number(online.value).toLocaleString('ru-RU');
+  if(today&&Number.isFinite(Number(today.value)))todayEl.textContent=Number(today.value).toLocaleString('ru-RU');
+ }
+ request('view','home',{unique:'true'}).then(()=>refresh());
+ heartbeat();
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){heartbeat();refresh();}});
+ setInterval(heartbeat,120000);
+ setInterval(refresh,60000);
+})();
+
+</script>
+</body>
+</html>
